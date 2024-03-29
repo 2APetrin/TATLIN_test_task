@@ -46,7 +46,8 @@ public:
         if (pos > size_) throw std::runtime_error("Tape out of range\n");
 
         file_.seekg(elem_sz, file_.cur);
-        // file_.seekp(detail::elem_sz, file_.cur); // they call rdbuf()->pubseekoff() for the same buffer so no need to call seekp to move put pointer
+        // they call rdbuf()->pubseekoff() for the same buffer so no need to call seekp to move put pointer
+        // file_.seekp(detail::elem_sz, file_.cur);
     }
 
     void move_prev() {

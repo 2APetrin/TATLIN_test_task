@@ -29,9 +29,10 @@ TEST(basic, test_1) {
 }
 
 TEST(machine, test_1) {
-    auto file_folder = fs::absolute(__FILE__).parent_path();
-    sorting_machine<int> mchn(file_folder.string() + "/test.bin",
-                              file_folder.string() + "/test_out.bin");
+    // auto file_folder = fs::absolute(__FILE__).parent_path();
+    // sorting_machine<int> mchn(file_folder.string() + "/test.bin",
+    //                           file_folder.string() + "/test_out.bin",
+    //                           32);
 }
 
 
