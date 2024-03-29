@@ -1,7 +1,10 @@
 #pragma once
 
-#include <fstream>
 #include <iostream>
+#include <fstream>
+
+#include <limits>
+#include <exception>
 
 namespace tape_simulation {
 
@@ -17,9 +20,13 @@ public:
         if (!file_.is_open())
             throw std::runtime_error("Cannot open file: " + path + "\n");
 
+        std::cout << "file opened" << std::endl;
+
         file_.seekg(0, file_.end);
         size_ = file_.tellg();
         file_.seekg(0, file_.beg);
+
+        std::cout << "size_=" << size_ << std::endl;
     }
 
     tape() = default;
@@ -36,17 +43,17 @@ public:
 
     void move_next() {
         int pos = file_.tellg() + elem_sz;
-        if (pos > size_) throw std::runtime_error("Move next out of range\n");
+        if (pos > size_) throw std::runtime_error("Tape out of range\n");
 
         file_.seekg(elem_sz, file_.cur);
-        /* seekg and seekp call rdbuf()->pubseekoff() for the same buffer,
-        so no need to call seekp to move put pointer */
+        // they call rdbuf()->pubseekoff() for the same buffer so no need to call seekp to move put pointer
+        // file_.seekp(detail::elem_sz, file_.cur);
     }
 
     void move_prev() {
-        if (file_.tellg() == 0) throw std::runtime_error("Move prev out of range\n");
+        if (file_.tellg() == 0) throw std::runtime_error("Tape out of range\n");
 
-        file_.seekg(-elem_sz, file_.cur); /* same as move_next */
+        file_.seekg(-elem_sz, file_.cur);
     }
 
     T read_elem() {
@@ -64,40 +71,44 @@ public:
         auto save_pos = file_.tellg();
         file_.seekg(0, file_.beg);
 
-        for (int i = 0, e = size_/elem_sz; i < e; ++i)
+        for (int i = 0; i < size_/elem_sz; ++i)
             std::cout << "pos_" << i << "=" << read_elem() << std::endl;
 
         file_.seekg(save_pos);
     }
 
     void open_tape(std::string path) {
-        if (file_.is_open())
-            throw std::runtime_error("Tape is already initialized. Trying to open: " + path + "\n");
-
         file_.open(path, std::fstream::out | std::fstream::in | std::fstream::binary);
 
         if (!file_.is_open())
-            throw std::runtime_error("Cannot open file in open_tape: " + path + "\n");
+            throw std::runtime_error("Cannot open file: " + path + "\n");
+
+        std::cout << "file opened" << std::endl;
 
         file_.seekg(0, file_.end);
         size_ = file_.tellg();
         file_.seekg(0, file_.beg);
+
+        std::cout << "size_=" << size_ << std::endl;
     }
 
-    int rewind_begin() {
-        int len = file_.tellg() / elem_sz;
+    void clear_tape() {
+        file_.clear();
+        file_.ignore(std::numeric_limits<std::streamsize>::max());
+
         file_.seekg(0, file_.beg);
-        return len;
+        size_ = 0;
     }
 
-    template<typename TypeIt>
-    int read_buffer(TypeIt beg, TypeIt end) {
-        int len = 0;
-        for (; beg != end; ++beg, ++len) *beg = read_elem();
+    void rewind_to(int pos) {
+        int curr = file_.tellg() / elem_sz;
 
-        return len;
+        if (pos * elem_sz > size_) throw std::runtime_error("Rewind out of range\n");
+
+        int diff = pos - curr;
+
+        file_.seekg(diff, file_.cur);
     }
 };
 
-
-} // <--- namespace tape_simulation
+} // <--- tape_simulation

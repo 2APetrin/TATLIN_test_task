@@ -12,7 +12,6 @@ namespace fs = std::filesystem;
 TEST(basic, test_1) {
     auto file_folder = fs::absolute(__FILE__).parent_path();
     tape<int> tp(file_folder.string() + "/test.bin");
-    tp.clear_tape();
 
     tp.write_elem(1);
     tp.write_elem(2);
@@ -29,10 +28,6 @@ TEST(basic, test_1) {
 }
 
 TEST(machine, test_1) {
-    // auto file_folder = fs::absolute(__FILE__).parent_path();
-    // sorting_machine<int> mchn(file_folder.string() + "/test.bin",
-    //                           file_folder.string() + "/test_out.bin",
-    //                           32);
 }
 
 

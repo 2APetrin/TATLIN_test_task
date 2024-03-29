@@ -3,11 +3,11 @@
 namespace tape_simulation {
 
 struct machine_settings {
-    int ram_size_elems = -1,
-        time_read      = -1,
-        time_write     = -1,
-        time_move      = -1,
-        time_rewind    = -1;
+    double ram_size_elems = -1,
+           time_read      = -1,
+           time_write     = -1,
+           time_move      = -1,
+           time_rewind    = -1;
 
 public:
     machine_settings() = default;
