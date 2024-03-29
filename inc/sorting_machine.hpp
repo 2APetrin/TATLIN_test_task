@@ -68,9 +68,9 @@ public:
 //------------------------------------------------
 
     int sort() {
-        read_ram();
+        read_ram(); // сделать, чтобы он не считывал дальше конца и как-то сигнализировал, что он дошел до конца
 
-        std::cout << simulation_timer << std::endl;
+        std::cout << "timer=" << simulation_timer << std::endl;
 
         std::sort(ram_.begin(), ram_.end());
 
@@ -80,9 +80,11 @@ public:
     }
 
 private:
-    void read_ram() {
+    int read_ram() {
         int len = in_tape.read_buffer(ram_.begin(), ram_.end());
         simulation_timer += len * (settings_.time_read + settings_.time_move);
+
+        return len;
     }
 };
 } // <--- namespace tape_simulation
