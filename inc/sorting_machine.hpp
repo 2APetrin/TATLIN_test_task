@@ -64,18 +64,18 @@ public:
 
         first_iteration(fst_ptrs, snd_ptrs);
 
-        fst_.dump();
-        snd_.dump();
+        // fst_.dump();
+        // snd_.dump();
 
         while (!merge_subtapes(fst_ptrs, snd_ptrs)) {
 
-            std::cout << "fst_ptrs" << std::endl;
-            for (auto && i : fst_ptrs) std::cout << i << std::endl;
-            std::cout << "snd_ptrs" << std::endl;
-            for (auto && i : snd_ptrs) std::cout << i << std::endl;
+            // std::cout << "fst_ptrs" << std::endl;
+            // for (auto && i : fst_ptrs) std::cout << i << std::endl;
+            // std::cout << "snd_ptrs" << std::endl;
+            // for (auto && i : snd_ptrs) std::cout << i << std::endl;
 
-            fst_.dump();
-            snd_.dump();
+            // fst_.dump();
+            // snd_.dump();
 
             tmr_.rewind(in_. rewind_begin());
             tmr_.rewind(out_.rewind_begin());
@@ -85,7 +85,7 @@ public:
             fst_ptrs.clear();
             snd_ptrs.clear();
 
-            std::cout << "cock\n";
+            //std::cout << "cock\n";
             separate_to_subtapes(fst_ptrs, snd_ptrs);
 
             tmr_.rewind(out_.rewind_begin());
@@ -93,8 +93,8 @@ public:
             tmr_.rewind(snd_.rewind_begin());
         }
 
-        std::cout << "OUT TAPE:" << std::endl;
-        out_.dump();
+        // std::cout << "OUT TAPE:" << std::endl;
+        // out_.dump();
 
         std::cout << "time=" << tmr_.time() << std::endl;
     }

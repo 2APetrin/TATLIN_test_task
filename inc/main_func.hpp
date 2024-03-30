@@ -24,7 +24,7 @@ namespace main_details {
         strm.open(path);
 
         if (!strm.is_open()) {
-            std::cerr << "Cannot open settings_buff file" << std::endl;
+            std::cerr << "Cannot open settings_buff file:" << path << std::endl;
             return true;
         }
 
@@ -46,7 +46,7 @@ namespace main_details {
         place_settings(settings, map);
 
         if (!settings.is_valid()) {
-            std::cerr << "Smth is wrong with configure file" << std::endl;
+            std::cerr << "Smth is wrong with configure file:" << path << std::endl;
             return true;
         }
 
@@ -57,14 +57,14 @@ namespace main_details {
         std::ifstream in_stream(path);
 
         if (!in_stream.is_open()) {
-            std::cerr << "Cannot open IN_file" << std::endl;
+            std::cerr << "Cannot open IN_file:" << path << std::endl;
             return true;
         }
 
         std::ofstream out_stream(bin_path, std::ofstream::binary);
 
         if (!out_stream.is_open()) {
-            std::cerr << "Cannot open OUT_binary_file" << std::endl;
+            std::cerr << "Cannot open OUT_binary_file:" << path << std::endl;
             return true;
         }
 
