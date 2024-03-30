@@ -49,23 +49,30 @@ public:
         file_.seekg(-elem_sz, file_.cur); /* same as move_next */
     }
 
-    T read_elem() {
-        T tmp{};
-        file_.read(reinterpret_cast<char*>(&tmp), elem_sz);
-        return tmp;
+    bool read_elem(T &elem) {
+        if (file_.tellg() == size_) return false;
+        file_.read(reinterpret_cast<char*>(&elem), elem_sz);
+        move_prev();
+
+        return true;
     }
 
     void write_elem(T elem) {
         if (file_.tellg() == size_) size_ += elem_sz;
         file_.write(reinterpret_cast<char*>(&elem), elem_sz);
+        move_prev();
     }
 
     void dump() {
         auto save_pos = file_.tellg();
         file_.seekg(0, file_.beg);
 
-        for (int i = 0, e = size_/elem_sz; i < e; ++i)
-            std::cout << "pos_" << i << "=" << read_elem() << std::endl;
+        std::cout << "TAPE DUMP" << std::endl;
+
+        for (int i = 0, e = size_/elem_sz, tmp{}; i < e; ++i) {
+            read_elem(tmp); move_next();
+            std::cout << "pos_" << i << "=" << tmp << std::endl;
+        }
 
         file_.seekg(save_pos);
     }
@@ -93,11 +100,23 @@ public:
     template<typename TypeIt>
     int read_buffer(TypeIt beg, TypeIt end) {
         int len = 0;
-        for (; beg != end; ++beg, ++len) *beg = read_elem();
+
+        for(int tmp{}; beg != end && read_elem(tmp); ++len, *(beg++) = tmp, move_next());
 
         return len;
     }
-};
 
+    template<typename TypeIt>
+    int write_buffer(TypeIt beg, TypeIt end) {
+        int len = 0;
+
+        for (; beg != end; write_elem(*(beg++)), ++len, move_next());
+
+        return len;
+    }
+
+    int pos()  { return file_.tellg() / elem_sz; }
+    int size() { return size_         / elem_sz; }
+};
 
 } // <--- namespace tape_simulation

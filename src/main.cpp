@@ -30,5 +30,10 @@ int main(int argc, char *argv[]) {
 
     mchn.sort();
 
+    if (main_details::convert_binary_to_int(argv[2], project_folder.string() + bin_out)) return 1;
+
+    fs::remove(project_folder.string() + bin_in);
+    fs::remove(project_folder.string() + bin_out);
+
     return 0;
 }

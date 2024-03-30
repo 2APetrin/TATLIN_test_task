@@ -82,4 +82,41 @@ namespace main_details {
 
         return false;
     }
+
+    bool convert_binary_to_int(std::string path, std::string bin_path) {
+        std::ofstream out_stream(path);
+
+        if (!out_stream.is_open()) {
+            std::cerr << "Cannot open OUT_file" << std::endl;
+            return true;
+        }
+
+        std::ifstream in_stream(bin_path, std::ofstream::binary);
+
+        if (!in_stream.is_open()) {
+            std::cerr << "Cannot open IN_binary_file" << std::endl;
+            return true;
+        }
+
+        int elem_sz = sizeof(int);
+
+        int tmp{};
+
+        in_stream.seekg(0, in_stream.end);
+        int size_ = in_stream.tellg();
+        in_stream.seekg(0, in_stream.beg);
+
+        int pos = 0;
+
+        while (pos != size_) {
+            in_stream.read(reinterpret_cast<char*>(&tmp), elem_sz);
+            pos += sizeof(int);
+
+            out_stream << std::to_string(tmp) << std::endl;
+        }
+
+        in_stream.close(); out_stream.close();
+
+        return false;
+    }
 } // <--- namespace main_details
