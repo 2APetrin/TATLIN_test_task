@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <fstream>
 #include <iostream>
 
@@ -63,6 +64,7 @@ public:
         move_prev();
     }
 
+#ifdef TAPE_DUMP_MODE
     void dump() {
         auto save_pos = file_.tellg();
         file_.seekg(0, file_.beg);
@@ -76,12 +78,16 @@ public:
 
         file_.seekg(save_pos);
     }
+#endif // TAPE_DUMP_MODE
+#ifndef TAPE_DUMP_MODE
+    void dump() { }
+#endif // TAPE_DUMP_MODE
 
     void open_tape(std::string path) {
         if (file_.is_open())
             throw std::runtime_error("Tape is already initialized. Trying to open: " + path + "\n");
 
-        file_.open(path, std::fstream::out | std::fstream::in | std::fstream::binary);
+        file_.open(path, std::fstream::out | std::fstream::in | std::fstream::binary | std::fstream::trunc);
 
         if (!file_.is_open())
             throw std::runtime_error("Cannot open file in open_tape: " + path + "\n");

@@ -2,38 +2,69 @@
 #include "sorting_machine.hpp"
 #include "main_func.hpp"
 
+#include <string_view>
+#include <chrono>
+
+
 namespace {
-    std::string config_pth = "/config.txt";
+    namespace fs  = std::filesystem;
+    namespace ts  = tape_simulation;
+    namespace tsd = tape_simulation::detail;
 
-    namespace fs = std::filesystem;
-    namespace ts = tape_simulation;
+    constexpr int default_config_file = 3;
+    constexpr int custom_config_file  = 4;
 
-    std::string bin_in  = "/tmp/in.bin" ;
-    std::string bin_out = "/tmp/out.bin";
+    constexpr std::string_view in_bin  = "in.bin";
+    constexpr std::string_view out_bin = "out.bin";
+    constexpr std::string_view config  = "config.txt";
 }
 
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
+    if (argc < default_config_file || argc > custom_config_file) {
         std::cerr << "Wrong number of arguments" << std::endl;
         return 1;
     }
 
     auto project_folder = fs::absolute(__FILE__).parent_path().parent_path();
 
-    ts::machine_settings settings;
-    if (main_details::process_settings(settings, project_folder.string() + config_pth)) return 1;
+    tsd::machine_settings settings;
 
-    if (main_details::convert_int_to_binary(argv[1], project_folder.string() + bin_in)) return 1;
+    if (argc == default_config_file) {
+        if (main_details::process_settings(settings, project_folder / config)) return 1;
+    }
+    else if (argc == custom_config_file) {
+        if (main_details::process_settings(settings, argv[custom_config_file-1])) return 1;
+    }
 
-    ts::sorting_machine<int> mchn(project_folder.string() + bin_in, project_folder.string() + bin_out, settings);
+    auto tmp_path = fs::temp_directory_path();
 
-    mchn.sort();
+    if (main_details::convert_int_to_binary(argv[1], tmp_path / in_bin)) return 1;
 
-    if (main_details::convert_binary_to_int(argv[2], project_folder.string() + bin_out)) return 1;
+#ifdef TAPE_DUMP_MODE
+    auto start = std::chrono::high_resolution_clock::now();
+#endif // TAPE_DUMP_MODE
 
-    fs::remove(project_folder.string() + bin_in);
-    fs::remove(project_folder.string() + bin_out);
+    ts::sorting_machine<int> mchn(settings);
+
+    ts::tape<int> in(tmp_path / in_bin);
+    ts::tape<int> out; out.open_tape(tmp_path / out_bin);
+
+    mchn.sort(in, out);
+
+#ifdef TAPE_DUMP_MODE
+    auto end = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+
+    std::cout << (double)time / 1000000000 << " sec" << std::endl;
+#endif // TAPE_DUMP_MODE
+
+    std::cout << "timer=" << mchn.time() << std::endl;
+
+    if (main_details::convert_binary_to_int(argv[default_config_file-1], tmp_path / out_bin)) return 1;
+
+    fs::remove(tmp_path / in_bin );
+    fs::remove(tmp_path / out_bin);
 
     return 0;
 }

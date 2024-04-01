@@ -1,4 +1,4 @@
-ram_size_byte 32
+ram_size_byte 8
 
 time_read   2
 time_write  2
