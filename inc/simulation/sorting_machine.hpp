@@ -9,50 +9,46 @@
 #include <filesystem>
 #include <type_traits>
 
-#include <sstream>
-#include <thread>
-
+#include <unistd.h>
 
 namespace tape_simulation {
 
 namespace detail {
+
     std::string fst_sub = "fst_sub.bin";
     std::string snd_sub = "snd_sub.bin";
 } // <--- namespace detail
 
-
 namespace fs = std::filesystem;
 
 template<typename T>
-//requires std::is_arithmetic_v<T>
+requires std::is_arithmetic_v<T>
 class sorting_machine final {
     tape<T> fst_, snd_;
 
     std::vector<T> ram_;
 
     detail::sim_timer tmr_;
+
+    std::string pid_str;
 public:
-    sorting_machine(detail::machine_settings &settings) : tmr_(settings, sizeof(T)) {
+    sorting_machine(machine_settings &settings) : tmr_(settings, sizeof(T)) {
         auto tmp_path = fs::temp_directory_path();
 
-        fst_.open_tape(tmp_path / detail::fst_sub);
-        snd_.open_tape(tmp_path / detail::snd_sub);
+        pid_str = std::to_string(getpid());
+
+        fst_.open_tape(tmp_path / fs::path(pid_str + detail::fst_sub));
+        snd_.open_tape(tmp_path / fs::path(pid_str + detail::snd_sub));
 
         ram_.resize(settings.ram_size_elems / sizeof(T));
-
-        // std::stringstream ss;
-
-        // ss << std::this_thread::get_id();
-
-        // std::cout << ss << std::endl;
     }
 
 //------------------Rule of five------------------
     ~sorting_machine() {
         auto tmp_path = fs::temp_directory_path();
 
-        fs::remove(tmp_path / detail::fst_sub);
-        fs::remove(tmp_path / detail::snd_sub);
+        fs::remove(tmp_path / fs::path(pid_str + detail::fst_sub));
+        fs::remove(tmp_path / fs::path(pid_str + detail::snd_sub));
     }
 
     sorting_machine(sorting_machine&)  = delete;
@@ -62,13 +58,12 @@ public:
     sorting_machine& operator=(      sorting_machine&&) = delete;
 //------------------------------------------------
 
+
     void sort(tape<T> &in, tape<T> &out) {
         std::vector<int> fst_ptrs;
         std::vector<int> snd_ptrs;
 
         first_sort_iteration(fst_ptrs, snd_ptrs, in);
-
-        int i = 1;
 
         while (!merge_subtapes(fst_ptrs, snd_ptrs, out)) {
             tmr_.rewind(in. rewind_begin());
@@ -82,11 +77,9 @@ public:
             separate_to_subtapes(fst_ptrs, snd_ptrs, out);
 
             tmr_.rewind(out.rewind_begin());
-            i++;
         }
-
-        std::cout << "merges=" << i << std::endl;
     }
+
 
     double time() { return tmr_.time(); }
 
@@ -104,11 +97,11 @@ private:
             write_ram((decision ? fst_ : snd_), len);
 
             if (decision) {
-                fst_pos+=len;
+                fst_pos += len;
                 fst_ptrs.push_back(fst_pos-1);
             }
             else {
-                snd_pos+=len;
+                snd_pos += len;
                 snd_ptrs.push_back(snd_pos-1);
             }
 
@@ -124,7 +117,7 @@ private:
         return len;
     }
 
-    int write_ram(tape<int> &tp, int cnt) {
+    int write_ram(tape<T> &tp, int cnt) {
         int len = tp.write_buffer(ram_.begin(), ram_.begin() + cnt);
         tmr_.move (len);
         tmr_.write(len);

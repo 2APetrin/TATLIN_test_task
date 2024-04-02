@@ -4,6 +4,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "tape_exceptions.hpp"
+
 namespace tape_simulation {
 
 template<typename T>
@@ -16,7 +18,7 @@ class tape final {
 public:
     tape(std::string path) : file_(path, std::fstream::out | std::fstream::in | std::fstream::binary) {
         if (!file_.is_open())
-            throw std::runtime_error("Cannot open file: " + path + "\n");
+            throw tape_exceptions::cannot_open_file(path);
 
         file_.seekg(0, file_.end);
         size_ = file_.tellg();
@@ -37,7 +39,7 @@ public:
 
     void move_next() {
         int pos = file_.tellg() + elem_sz;
-        if (pos > size_) throw std::runtime_error("Move next out of range\n");
+        if (pos > size_) throw tape_exceptions::move_next_out_of_range();
 
         file_.seekg(elem_sz, file_.cur);
         /* seekg and seekp call rdbuf()->pubseekoff() for the same buffer,
@@ -45,9 +47,9 @@ public:
     }
 
     void move_prev() {
-        if (file_.tellg() == 0) throw std::runtime_error("Move prev out of range\n");
+        if (file_.tellg() == 0) throw tape_exceptions::move_prev_out_of_range();
 
-        file_.seekg(-elem_sz, file_.cur); /* same as move_next */
+        file_.seekg(-elem_sz, file_.cur);
     }
 
     bool read_elem(T &elem) {
@@ -85,12 +87,12 @@ public:
 
     void open_tape(std::string path) {
         if (file_.is_open())
-            throw std::runtime_error("Tape is already initialized. Trying to open: " + path + "\n");
+            throw tape_exceptions::tape_already_initialized(path);
 
         file_.open(path, std::fstream::out | std::fstream::in | std::fstream::binary | std::fstream::trunc);
 
         if (!file_.is_open())
-            throw std::runtime_error("Cannot open file in open_tape: " + path + "\n");
+            throw tape_exceptions::cannot_open_in_file(path);
 
         file_.seekg(0, file_.end);
         size_ = file_.tellg();

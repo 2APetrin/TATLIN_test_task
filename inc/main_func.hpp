@@ -24,16 +24,15 @@ namespace detail {
         return false;
     }
 
-    void place_settings(tsd::machine_settings &settings, std::unordered_map<std::string, double> &map) {
+    void place_settings(ts::machine_settings &settings, std::unordered_map<std::string, double> &map) {
         auto it = map.find("ram_size_byte"); if (it != map.end()) { settings.ram_size_elems = it->second; };
              it = map.find("time_read");     if (it != map.end()) { settings.time_read      = it->second; };
              it = map.find("time_write");    if (it != map.end()) { settings.time_write     = it->second; };
              it = map.find("time_move");     if (it != map.end()) { settings.time_move      = it->second; };
              it = map.find("time_rewind");   if (it != map.end()) { settings.time_rewind    = it->second; };
     }
-} // <--- namespace detail
 
-    bool process_settings(tsd::machine_settings &settings, std::string path) {
+    bool write_settings(ts::machine_settings &settings, std::string path) {
         std::ifstream settings_strm;
         if (detail::open_ifstream(path, settings_strm)) return true;
 
@@ -49,6 +48,34 @@ namespace detail {
 
         if (!settings.is_valid()) {
             std::cerr << "Smth is wrong with configure file:" << path << std::endl;
+            return true;
+        }
+
+        return false;
+    }
+
+    std::string config  = "config.txt";
+
+    constexpr int default_config_file = 3;
+    constexpr int custom_config_file  = 4;
+} // <--- namespace detail
+
+    bool process_settings(ts::machine_settings &settings, int argc, char *argv[]) {
+        auto project_folder = fs::absolute(__FILE__).parent_path().parent_path();
+
+        if (argc == detail::default_config_file) {
+            if (detail::write_settings(settings, project_folder / detail::config)) return true;
+        }
+        else if (argc == detail::custom_config_file) {
+            if (detail::write_settings(settings, argv[detail::custom_config_file-1])) return true;
+        }
+
+        return false;
+    }
+
+    bool arg_check(int argc) {
+        if (argc < detail::default_config_file || argc > detail::custom_config_file) {
+            std::cerr << "Wrong number of arguments" << std::endl;
             return true;
         }
 

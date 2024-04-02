@@ -1,11 +1,12 @@
 #pragma once
 
+#include <stdexcept>
+
 namespace tape_simulation {
 
-namespace detail {
 struct machine_settings final {
-    double ram_size_elems = -1,
-           time_read      = -1,
+    int    ram_size_elems = -1;
+    double time_read      = -1,
            time_write     = -1,
            time_move      = -1,
            time_rewind    = -1;
@@ -25,7 +26,8 @@ public:
     }
 };
 
-/** timer class for tracking simulation time */
+namespace detail {
+
 class sim_timer final {
     machine_settings stt_;
     double time_ = 0;
@@ -33,6 +35,9 @@ class sim_timer final {
 public:
     sim_timer(machine_settings& stt, int den) : stt_(stt) {
         stt_.ram_size_elems /= den;
+
+        if (stt_.ram_size_elems <= 0)
+            throw std::runtime_error("RAM size is incorrect, check config file\n");
     }
 
     void read  (int n = 1) { time_ += n * stt_.time_read;   }
