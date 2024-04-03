@@ -1,0 +1,7 @@
+ram_size_byte 32
+
+time_read   2
+time_write  2
+
+time_move   1
+time_rewind 0.1

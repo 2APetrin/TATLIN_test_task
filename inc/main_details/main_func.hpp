@@ -54,34 +54,6 @@ namespace detail {
         return false;
     }
 
-    std::string config  = "config.txt";
-
-    constexpr int default_config_file = 3;
-    constexpr int custom_config_file  = 4;
-} // <--- namespace detail
-
-    bool process_settings(ts::machine_settings &settings, int argc, char *argv[]) {
-        auto project_folder = fs::absolute(__FILE__).parent_path().parent_path();
-
-        if (argc == detail::default_config_file) {
-            if (detail::write_settings(settings, project_folder / detail::config)) return true;
-        }
-        else if (argc == detail::custom_config_file) {
-            if (detail::write_settings(settings, argv[detail::custom_config_file-1])) return true;
-        }
-
-        return false;
-    }
-
-    bool arg_check(int argc) {
-        if (argc < detail::default_config_file || argc > detail::custom_config_file) {
-            std::cerr << "Wrong number of arguments" << std::endl;
-            return true;
-        }
-
-        return false;
-    }
-
     bool convert_int_to_binary(std::string path, std::string bin_path) {
         std::ifstream in_stream(path);
 
@@ -145,6 +117,78 @@ namespace detail {
         }
 
         in_stream.close(); out_stream.close();
+
+        return false;
+    }
+
+    std::string config  = "config.txt";
+
+    std::string tmp_in_bin  = "in.bin";
+    std::string tmp_out_bin = "out.bin";
+
+    constexpr int flag_pos    = 1;
+    constexpr int min_arg_cnt = 3;
+    constexpr int max_arg_cnt = 4;
+
+    constexpr int max_arg_cnt_with_flag = 5;
+} // <--- namespace detail
+
+    bool bin_flag_check(char *argv[]) { return std::string(argv[detail::flag_pos]) == std::string("-bin"); }
+
+    bool process_paths(fs::path &bin_in, fs::path &bin_out, char *argv[]) {
+        if (bin_flag_check(argv)) {
+            bin_in  = argv[detail::flag_pos + 1];
+            bin_out = argv[detail::flag_pos + 2];
+        }
+        else {
+            std::string pid_str = std::to_string(getpid());
+            auto tmp_path       = fs::temp_directory_path();
+
+            bin_in  = fs::path(tmp_path / (pid_str + detail::tmp_in_bin ));
+            bin_out = fs::path(tmp_path / (pid_str + detail::tmp_out_bin));
+
+            if (detail::convert_int_to_binary(argv[detail::flag_pos], bin_in)) return true;
+        }
+
+        return false;
+    }
+
+    bool process_out_files(char *argv[], const fs::path &bin_in, const fs::path &bin_out) {
+        if (bin_flag_check(argv)) return false;
+
+        if (detail::convert_binary_to_int(argv[detail::flag_pos + 1], bin_out)) return true;
+
+        fs::remove(bin_in);
+        fs::remove(bin_out);
+
+        return false;
+    }
+
+    bool process_settings(ts::machine_settings &settings, int argc, char *argv[]) {
+        auto project_folder = fs::absolute(__FILE__).parent_path().parent_path().parent_path();
+
+        int inc = 0;
+        if (bin_flag_check(argv)) ++inc;
+
+        if (argc == detail::min_arg_cnt + inc) {
+            if (detail::write_settings(settings, project_folder / detail::config)) return true;
+        }
+        else if (argc == detail::max_arg_cnt + inc) {
+            if (detail::write_settings(settings, argv[detail::max_arg_cnt + inc - 1])) return true;
+        }
+        else {
+            std::cerr << "Bad programm arguments" << std::endl;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool arg_check(int argc) {
+        if (argc < detail::min_arg_cnt || argc > detail::max_arg_cnt_with_flag) {
+            std::cerr << "Wrong number of arguments" << std::endl;
+            return true;
+        }
 
         return false;
     }
