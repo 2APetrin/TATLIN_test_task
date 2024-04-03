@@ -47,7 +47,8 @@ public:
     }
 
     void move_prev() {
-        if (file_.tellg() == 0) throw tape_exceptions::move_prev_out_of_range();
+        int pos = file_.tellg() - elem_sz;
+        if (pos < 0) throw tape_exceptions::move_prev_out_of_range();
 
         file_.seekg(-elem_sz, file_.cur);
     }
@@ -92,7 +93,7 @@ public:
         file_.open(path, std::fstream::out | std::fstream::in | std::fstream::binary | std::fstream::trunc);
 
         if (!file_.is_open())
-            throw tape_exceptions::cannot_open_in_file(path);
+            throw tape_exceptions::cannot_open_file(path);
 
         file_.seekg(0, file_.end);
         size_ = file_.tellg();
@@ -123,8 +124,10 @@ public:
         return len;
     }
 
-    int pos()  { return file_.tellg() / elem_sz; }
-    int size() { return size_         / elem_sz; }
+    int pos()        { return file_.tellg() / elem_sz; }
+    int size() const { return size_         / elem_sz; }
+
+    bool is_valid() const { return file_.is_open() && size_ >= 0; }
 };
 
 } // <--- namespace tape_simulation

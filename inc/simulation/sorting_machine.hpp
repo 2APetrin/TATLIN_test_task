@@ -2,6 +2,7 @@
 
 #include "tape.hpp"
 #include "simulation_settings.hpp"
+#include "simulation_exceptions.hpp"
 
 #include <vector>
 #include <string>
@@ -14,7 +15,6 @@
 namespace tape_simulation {
 
 namespace detail {
-
     std::string fst_sub = "fst_sub.bin";
     std::string snd_sub = "snd_sub.bin";
 } // <--- namespace detail
@@ -32,7 +32,7 @@ class sorting_machine final {
 
     std::string pid_str;
 public:
-    sorting_machine(machine_settings &settings) : tmr_(settings, sizeof(T)) {
+    sorting_machine(const machine_settings &settings) : tmr_(settings, sizeof(T)) {
         auto tmp_path = fs::temp_directory_path();
 
         pid_str = std::to_string(getpid());
@@ -58,8 +58,12 @@ public:
     sorting_machine& operator=(      sorting_machine&&) = delete;
 //------------------------------------------------
 
-
     void sort(tape<T> &in, tape<T> &out) {
+        if (!in.is_valid() || !out.is_valid())
+            throw simulation_exceptions::not_valid_tapes();
+        if (&in == &out)
+            throw simulation_exceptions::sotring_the_same_tape();
+
         std::vector<int> fst_ptrs;
         std::vector<int> snd_ptrs;
 
@@ -80,8 +84,7 @@ public:
         }
     }
 
-
-    double time() { return tmr_.time(); }
+    double time() const { return tmr_.time(); }
 
 private:
     void first_sort_iteration(std::vector<int> &fst_ptrs, std::vector<int> &snd_ptrs, tape<T> &in) {
@@ -222,7 +225,7 @@ private:
         return ret;
     }
 
-    void copy_tape(tape<int> &in, int pos, tape<int> &out) {
+    void copy_tape(tape<T> &in, int pos, tape<T> &out) {
         int curr = in.pos();
         T tmp{};
 

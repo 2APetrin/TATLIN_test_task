@@ -20,12 +20,14 @@ add_executable(tape_sort src/main.cpp)
 
 add_executable(unit_test test/google_test.cpp)
 
-target_include_directories(tape_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-target_include_directories(tape_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/tape)
+target_include_directories(tape_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/main_details)
 target_include_directories(tape_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/simulation)
+target_include_directories(tape_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/tape)
 
-target_include_directories(unit_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-target_include_directories(unit_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/tape)
+target_include_directories(unit_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/main_details)
 target_include_directories(unit_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/simulation)
+target_include_directories(unit_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc/tape)
 
 target_link_libraries(unit_test PRIVATE ${GTEST_LIBRARIES})
+
+target_compile_definitions(unit_test PRIVATE -DTAPE_DUMP_MODE)

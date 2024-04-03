@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdexcept>
+#include "simulation_exceptions.hpp"
 
 namespace tape_simulation {
 
@@ -12,9 +12,7 @@ struct machine_settings final {
            time_rewind    = -1;
 
 public:
-    machine_settings() = default;
-
-    bool is_valid() {
+    bool is_valid() const {
         if (ram_size_elems <= 0 ||
             time_read       < 0 ||
             time_write      < 0 ||
@@ -33,11 +31,11 @@ class sim_timer final {
     double time_ = 0;
 
 public:
-    sim_timer(machine_settings& stt, int den) : stt_(stt) {
+    sim_timer(const machine_settings& stt, int den) : stt_(stt) {
         stt_.ram_size_elems /= den;
 
-        if (stt_.ram_size_elems <= 0)
-            throw std::runtime_error("RAM size is incorrect, check config file\n");
+        if (!stt_.is_valid())
+            throw simulation_exceptions::config_file_troubles();
     }
 
     void read  (int n = 1) { time_ += n * stt_.time_read;   }
@@ -45,7 +43,7 @@ public:
     void move  (int n = 1) { time_ += n * stt_.time_move;   }
     void rewind(int n = 1) { time_ += n * stt_.time_rewind; }
 
-    double time() { return time_; }
+    double time() const { return time_; }
 };
 
 } // <--- namespace detail
