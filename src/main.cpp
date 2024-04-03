@@ -10,7 +10,7 @@ namespace {
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) try {
     if (md::arg_check(argc)) return 1;
 
     ts::machine_settings settings;
@@ -34,4 +34,8 @@ int main(int argc, char *argv[]) {
     if (md::process_out_files(argv, bin_in, bin_out)) return 1;
 
     return 0;
+}
+catch (std::exception &exception) {
+    std::cerr << "Programm error: " << exception.what() << std::endl;
+    return 1;
 }

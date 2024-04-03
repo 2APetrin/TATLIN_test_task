@@ -28,7 +28,7 @@ public:
     tape() = default;
 
 //------------------Rule of five------------------
-    ~tape() { file_.close(); }
+    ~tape() = default;
 
     tape(const tape&) = delete;
     tape(tape&&)      = delete;
